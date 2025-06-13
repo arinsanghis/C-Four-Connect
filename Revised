@@ -1,0 +1,114 @@
+using System;
+using System.Linq;
+
+public class MainClass {
+
+    public static string ConnectFourWinner(string rawInput) {
+        string[] strArr = rawInput.Split(';');
+
+        if (strArr.Length < 7) {
+            return "Error: Invalid input format. Expected 7 semicolon-separated parts.";
+        }
+
+        char currentPlayer = strArr[0][0];
+        char[,] gameBoard = new char[6, 7];
+
+        for (int i = 0; i < 6; i++) {
+            string rowString = strArr[i + 1].Trim('(', ')', ' ');
+            char[] cells = rowString.Split(',').Select(s => s.Trim()[0]).ToArray();
+
+            if (cells.Length != 7) {
+                return $"Error: Invalid board row format in '{strArr[i+1]}'. Expected 7 cells, got {cells.Length}.";
+            }
+
+            for (int j = 0; j < 7; j++) {
+                gameBoard[i, j] = cells[j];
+            }
+        }
+
+        for (int col = 0; col < 7; col++) {
+            int rowToPlace = -1;
+            for (int r = 5; r >= 0; r--) {
+                if (gameBoard[r, col] == 'x') {
+                    rowToPlace = r;
+                    break;
+                }
+            }
+
+            if (rowToPlace == -1) {
+                continue;
+            }
+
+            gameBoard[rowToPlace, col] = currentPlayer;
+
+            if (CheckForWin(gameBoard, currentPlayer, rowToPlace, col)) {
+                return $"({rowToPlace + 1}x{col + 1})";
+            }
+            
+            gameBoard[rowToPlace, col] = 'x';
+        }
+
+        return "none";
+    }
+
+    private static bool CheckForWin(char[,] board, char player, int r, int c) {
+        int rows = 6;
+        int cols = 7;
+
+        for (int startCol = Math.Max(0, c - 3); startCol <= Math.Min(cols - 4, c); startCol++) {
+            if (board[r, startCol] == player &&
+                board[r, startCol + 1] == player &&
+                board[r, startCol + 2] == player &&
+                board[r, startCol + 3] == player) {
+                return true;
+            }
+        }
+
+        for (int startRow = Math.Max(0, r - 3); startRow <= r; startRow++) {
+             if (startRow + 3 < rows) {
+                if (board[startRow, c] == player &&
+                    board[startRow + 1, c] == player &&
+                    board[startRow + 2, c] == player &&
+                    board[startRow + 3, c] == player) {
+                    return true;
+                }
+            }
+        }
+
+        for (int i = -3; i <= 0; i++) {
+            int currR = r + i;
+            int currC = c + i;
+
+            if (currR >= 0 && currR + 3 < rows &&
+                currC >= 0 && currC + 3 < cols) {
+                if (board[currR, currC] == player &&
+                    board[currR + 1, currC + 1] == player &&
+                    board[currR + 2, currC + 2] == player &&
+                    board[currR + 3, currC + 3] == player) {
+                    return true;
+                }
+            }
+        }
+
+        for (int i = -3; i <= 0; i++) {
+            int startR = r - i;
+            int startC = c + i;
+            
+            if (startR - 3 >= 0 && startR < rows &&
+                startC >= 0 && startC + 3 < cols) {
+                 if (board[startR, startC] == player &&
+                    board[startR - 1, startC + 1] == player &&
+                    board[startR - 2, startC + 2] == player &&
+                    board[startR - 3, startC + 3] == player) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    static void Main() {
+      Console.WriteLine(ConnectFourWinner(Console.ReadLine()));
+    }
+} 
